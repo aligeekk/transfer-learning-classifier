@@ -1,7 +1,6 @@
 from ImageUtils import generateDataLoaderDictionary
 from torchvision import models
 import torch
-from torch import nn, device, cuda, optim, no_grad
 from workspace-utils import keep_awake
 
 def freeze_model_parameters(model):
@@ -9,12 +8,12 @@ def freeze_model_parameters(model):
         param.requires_grad = False
 
 def generate_classifier(classifier_input_size, hidden_units):
-    flower_classifier = nn.Sequential(OrderedDict([
-        ('hiddenA', nn.Linear(classifier_input_size, hidden_units)),
-        ('relu', nn.ReLU()),
-        ('dropout', nn.Dropout(p=0.2)),
-        ('hiddenB', nn.Linear(hidden_units, 102)),
-        ('output', nn.LogSoftmax(dim=1))
+    flower_classifier = torch.nn.Sequential(OrderedDict([
+        ('hiddenA', torch.nn.Linear(classifier_input_size, hidden_units)),
+        ('relu', torch.nn.ReLU()),
+        ('dropout', torch.nn.Dropout(p=0.2)),
+        ('hiddenB', torch.nn.Linear(hidden_units, 102)),
+        ('output', torch.nn.LogSoftmax(dim=1))
     ]))
     return flower_classifier
 
@@ -36,7 +35,7 @@ def evaluate_model_on_validation(model, dataloaders, device, criterion, validati
     validation_loss = 0
     validation_accuracy = 0
     model.eval()
-    with no_grad():
+    with torch.no_grad():
         for images, labels in dataloaders['validation']:
             images_test_cuda, labels_test_cuda = images.to(device), labels.to(device)
 
@@ -55,7 +54,7 @@ def evaluate_model_on_testing(model, dataloaders, device, criterion):
     test_loss = 0
     test_accuracy = 0
     model.eval()
-    with no_grad():
+    with torch.no_grad():
         for images, labels in dataloaders['testing']:
             images_test_cuda, labels_test_cuda = images.to(device), labels.to(device)
 
@@ -70,7 +69,7 @@ def evaluate_model_on_testing(model, dataloaders, device, criterion):
     return test_loss, test_accuracy
 
 def run_feed_forward_back_propagation(model, epochs, learning_rate, dataloaders, criterion):
-    optimizer = optim.Adam(model.classifier.parameters(), lr=learning_rate)
+    optimizer = torch.optim.Adam(model.classifier.parameters(), lr=learning_rate)
     model.to(device)
     train_losses = []
     validation_losses = []
@@ -107,7 +106,7 @@ def train_and_save_model(data_directory, save_directory, architecture,
     freeze_model_parameters(model)
     model_classifier = generate_classifier(model.classifier[0].in_features, hidden_units)
     model.classifier = model_classifier
-    criterion = nn.NLLLoss()
+    criterion = torch.nn.NLLLoss()
     device = torch.device("cuda:0" if (is_gpu_enabled and torch.cuda.is_available()) else "cpu")
 
     run_feed_forward_back_propagation(model, epochs, learning_rate, dataloaders, criterion)
