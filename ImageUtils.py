@@ -33,4 +33,4 @@ def generateDataLoaderDictionary(data_dir):
         'validation': utils.data.DataLoader(image_datasets['validation'], batch_size = 64),
         'testing': utils.data.DataLoader(image_datasets['testing'], batch_size = 64),
     }
-    return dataloaders
+    return image_datasets, dataloaders
