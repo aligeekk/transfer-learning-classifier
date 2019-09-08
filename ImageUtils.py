@@ -1,5 +1,6 @@
 from torchvision import datasets, transforms
 from torch import utils
+from argparse import ArgumentTypeError
 
 data_transforms = {
     'training': transforms.Compose([
@@ -34,3 +35,12 @@ def generateDataLoaderDictionary(data_dir):
         'testing': utils.data.DataLoader(image_datasets['testing'], batch_size = 64),
     }
     return image_datasets, dataloaders
+
+def check_positive_integral_value(input_value):
+    try:
+        int_input_value = int(input_value)
+        if int_input_value <= 0:
+            raise ArgumentTypeError("{} is not a positive integer".format(int_input_value))
+        return int_input_value
+    except:
+        raise ArgumentTypeError("{} is not a positive integer".format(input_value))
