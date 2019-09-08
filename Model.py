@@ -2,6 +2,8 @@ from ImageUtils import generateDataLoaderDictionary
 from torchvision import models
 import torch
 from workspace-utils import keep_awake
+from ImageUtils import process_image
+import numpy as np
 
 def freeze_model_parameters(model):
     for param in model.parameters():
@@ -111,3 +113,42 @@ def train_and_save_model(data_directory, save_directory, architecture,
 
     run_feed_forward_back_propagation(model, epochs, learning_rate, dataloaders, criterion)
     save_to_checkpoint(model, save_directory, architecture, epochs, image_datasets)
+
+def load_checkpoint(pathname, device):
+    try:
+        checkpoint = torch.load(pathname)
+    except err:
+        print(err)
+        print(("{} is not a valid path".format(pathname))
+    else:
+        try:
+            model = models[checkpoint['model_architecture']](pretrained=True)
+        except err:
+            print(err)
+            print("{} is not a valid model architecture".format(checkpoint['model_architecture']))
+         else:
+            model.to(device)
+            # Freeze VGG network pre-trained parameters
+            for param in model.parameters():
+                param.requires_grad = False
+            model.class_to_idx = checkpoint['class_to_idx']
+            model.classifier = checkpoint['classifier']
+            return model
+
+def predict(image_path, model, topk, device):
+    ''' Predict the class (or classes) of an image using a trained deep learning model.'''
+    im = Image.open(image_path)
+    formatted_image = process_image(im)
+    fi_to_torch = torch.tensor(np.array([formatted_image.transpose((2,0,1))])).type(torch.FloatTensor)
+    model.eval()
+    with torch.no_grad():
+        probability_results = model(fi_to_torch.to(device))
+    model.train()
+    probs, classes = probability_results.topk(topk)
+    return torch.exp(probs), classes
+
+def make_prediction(path_to_image, checkpoint, top_k, category_names, is_gpu_enabled):
+    device = torch.device("cuda:0" if (is_gpu_enabled and torch.cuda.is_available()) else "cpu")
+    model = load_checkpoint(checkpoint, device)
+    probs, classes = predict(path_to_image, model, top_k, device)
+    return probs, classes

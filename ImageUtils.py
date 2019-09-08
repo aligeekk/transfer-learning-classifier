@@ -1,6 +1,7 @@
 from torchvision import datasets, transforms
 from torch import utils
 from argparse import ArgumentTypeError
+import numpy as np
 
 data_transforms = {
     'training': transforms.Compose([
@@ -44,3 +45,21 @@ def check_positive_integral_value(input_value):
         return int_input_value
     except:
         raise ArgumentTypeError("{} is not a positive integer".format(input_value))
+
+def process_image(image):
+    ''' Scales, crops, and normalizes a PIL image for a PyTorch model,
+        returns an Numpy array'''
+    old_size = image.size
+    scale_ratio = float(256)/min(old_size)
+    new_size = tuple([int(x*scale_ratio) for x in old_size])
+    new_width, new_height = new_size
+    resized_im = image.resize(new_size)
+    cropped_im = resized_im.crop((float(new_width - 224) / 2, float(new_height - 224) / 2,
+                                  new_width - float(new_width - 224) / 2, new_height - float(new_height - 224) / 2))
+    np_image = np.array(cropped_im)
+    np_image_scaled = np_image / 255
+    color_mean = np.array([0.485, 0.456, 0.406])
+    color_std = np.array([0.229, 0.224, 0.225])
+    np_image_standardized = (np_image_scaled - color_mean) / color_std
+    np_image_standardized.transpose((2,0,1))
+    return np.array(np_image_standardized)
