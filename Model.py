@@ -1,8 +1,9 @@
 from ImageUtils import generateDataLoaderDictionary
 from torchvision import models
-import torch
-from workspace-utils import keep_awake
+from workspace_utils import keep_awake
 from ImageUtils import process_image
+from collections import OrderedDict
+import torch
 import numpy as np
 
 def freeze_model_parameters(model):
@@ -43,7 +44,7 @@ def evaluate_model_on_validation(model, dataloaders, device, criterion, validati
 
             log_forward_pass = model(images_test_cuda)
             validation_loss += criterion(log_forward_pass, labels_test_cuda).item()
-            forward_pass = exp(log_forward_pass)
+            forward_pass = torch.exp(log_forward_pass)
             top_p, top_class = forward_pass.topk(1, dim=1)
 
             equals = top_class == labels_test_cuda.view(*top_class.shape)
@@ -62,7 +63,7 @@ def evaluate_model_on_testing(model, dataloaders, device, criterion):
 
             test_log_forward_pass = model(images_test_cuda)
             test_loss += criterion(test_log_forward_pass, labels_test_cuda).item()
-            test_forward_pass = exp(test_log_forward_pass)
+            test_forward_pass = torch.exp(test_log_forward_pass)
             top_p, top_class = test_forward_pass.topk(1, dim=1)
 
             test_equals = top_class == labels_test_cuda.view(*top_class.shape)
@@ -70,7 +71,7 @@ def evaluate_model_on_testing(model, dataloaders, device, criterion):
     model.train()
     return test_loss, test_accuracy
 
-def run_feed_forward_back_propagation(model, epochs, learning_rate, dataloaders, criterion):
+def run_feed_forward_back_propagation(model, epochs, learning_rate, dataloaders, criterion, device):
     optimizer = torch.optim.Adam(model.classifier.parameters(), lr=learning_rate)
     model.to(device)
     train_losses = []
@@ -100,18 +101,34 @@ def save_to_checkpoint(model, save_directory, architecture, optimizer, epochs, i
     }
     torch.save(checkpoint, save_directory)
 
+def get_model(architecture):
+    """The default model is vgg11."""
+    if architecture == 'resnet18':
+        return models.resnet18(pretrained=True)
+    elif architecture == 'squeezenet1_0':
+        return models.squeezenet1_0(pretrained=True)
+    elif architecture == 'densenet121':
+        return models.densenet121(pretrained=True)
+    elif architecture == 'vgg13':
+        return models.vgg13(pretrained=True)
+    elif architecture == 'vgg16':
+        return models.vgg16(pretrained=True)
+    elif architecture == 'vgg19':
+        return models.vgg19(pretrained=True)
+    else:
+        return models.vgg11(pretrained=True)
+
 def train_and_save_model(data_directory, save_directory, architecture,
                          learning_rate, hidden_units, epochs, is_gpu_enabled):
     image_datasets, dataloaders = generateDataLoaderDictionary(data_directory)
-    model = models[architecture](pretrained=True)
-
+    model = get_model(architecture)
     freeze_model_parameters(model)
     model_classifier = generate_classifier(model.classifier[0].in_features, hidden_units)
     model.classifier = model_classifier
     criterion = torch.nn.NLLLoss()
     device = torch.device("cuda:0" if (is_gpu_enabled and torch.cuda.is_available()) else "cpu")
 
-    run_feed_forward_back_propagation(model, epochs, learning_rate, dataloaders, criterion)
+    run_feed_forward_back_propagation(model, epochs, learning_rate, dataloaders, criterion, device)
     save_to_checkpoint(model, save_directory, architecture, epochs, image_datasets)
 
 def load_checkpoint(pathname, device):
@@ -119,14 +136,14 @@ def load_checkpoint(pathname, device):
         checkpoint = torch.load(pathname)
     except err:
         print(err)
-        print(("{} is not a valid path".format(pathname))
+        print("{} is not a valid path".format(pathname))
     else:
         try:
             model = models[checkpoint['model_architecture']](pretrained=True)
         except err:
             print(err)
             print("{} is not a valid model architecture".format(checkpoint['model_architecture']))
-         else:
+        else:
             model.to(device)
             # Freeze VGG network pre-trained parameters
             for param in model.parameters():

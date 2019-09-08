@@ -1,11 +1,11 @@
 import argparse
-from Model.py import train_and_save_model
-from ImageUtils.py import check_positive_integral_value
+from Model import train_and_save_model
+from ImageUtils import check_positive_integral_value
 
 # data_directory -> required directory from which to train
 # --save_dir save_directory -> optional directory to save checkpoint
 # --arch "vgg11" -> optional architecture for features
-# --learning_rate 0.01 -> optional learning rate
+# --learning_rate 0.003 -> optional learning rate
 # --hidden_units 512 -> optional number of hidden units in classifier
 # --epochs 5 -> optional number of epochs in training
 # --gpu -> optional choice to use GPU during training
@@ -37,6 +37,3 @@ if __name__ == "__main__":
     args = getTrainingDataArguments()
     train_and_save_model(args.data_directory, args.save_directory, args.architecture, args.learning_rate, args.hidden_units,
                          args.epochs, args.is_gpu_enabled)
-    print(args)
-    print(args.hidden_units)
-    print(args.data_directory)
