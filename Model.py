@@ -3,6 +3,7 @@ from torchvision import models
 from workspace_utils import keep_awake
 from ImageUtils import process_image
 from collections import OrderedDict
+from PIL import Image
 import torch
 import numpy as np
 
@@ -71,8 +72,7 @@ def evaluate_model_on_testing(model, dataloaders, device, criterion):
     model.train()
     return test_loss, test_accuracy
 
-def run_feed_forward_back_propagation(model, epochs, learning_rate, dataloaders, criterion, device):
-    optimizer = torch.optim.Adam(model.classifier.parameters(), lr=learning_rate)
+def run_feed_forward_back_propagation(model, epochs, dataloaders, criterion, device, optimizer):
     model.to(device)
     train_losses = []
     validation_losses = []
@@ -127,21 +127,19 @@ def train_and_save_model(data_directory, save_directory, architecture,
     model.classifier = model_classifier
     criterion = torch.nn.NLLLoss()
     device = torch.device("cuda:0" if (is_gpu_enabled and torch.cuda.is_available()) else "cpu")
-
-    run_feed_forward_back_propagation(model, epochs, learning_rate, dataloaders, criterion, device)
-    save_to_checkpoint(model, save_directory, architecture, epochs, image_datasets)
+    optimizer = torch.optim.Adam(model.classifier.parameters(), lr=learning_rate)
+    run_feed_forward_back_propagation(model, epochs, dataloaders, criterion, device, optimizer)
+    save_to_checkpoint(model, save_directory, architecture, optimizer, epochs, image_datasets)
 
 def load_checkpoint(pathname, device):
     try:
         checkpoint = torch.load(pathname)
-    except err:
-        print(err)
+    except:
         print("{} is not a valid path".format(pathname))
     else:
         try:
-            model = models[checkpoint['model_architecture']](pretrained=True)
-        except err:
-            print(err)
+            model = get_model(checkpoint['model_architecture'])
+        except:
             print("{} is not a valid model architecture".format(checkpoint['model_architecture']))
         else:
             model.to(device)
@@ -168,4 +166,12 @@ def make_prediction(path_to_image, checkpoint, top_k, category_names, is_gpu_ena
     device = torch.device("cuda:0" if (is_gpu_enabled and torch.cuda.is_available()) else "cpu")
     model = load_checkpoint(checkpoint, device)
     probs, classes = predict(path_to_image, model, top_k, device)
-    return probs, classes
+    formatted_probs = probs.cpu().numpy()[0]
+    idx_to_class = dict()
+    for category_class,index in model.class_to_idx.items():
+        idx_to_class[index] = category_class
+    if category_names:
+        formatted_classes = [category_names[idx_to_class[idx]] for idx in classes.cpu().numpy()[0]]
+    else:
+        formatted_classes = [idx_to_class[idx] for idx in classes.cpu().numpy()[0]]
+    return formatted_probs, formatted_classes

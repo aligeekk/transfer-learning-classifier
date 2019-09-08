@@ -1,6 +1,7 @@
-import argparse
 from ImageUtils import check_positive_integral_value
 from Model import make_prediction
+import argparse
+import json
 
 # path to image
 # checkpoint
@@ -22,6 +23,12 @@ def getPredictionDataArguments():
 
 if __name__ == "__main__":
     args = getPredictionDataArguments()
-    probs, classes = make_prediction(args.path_to_image, args.checkpoint, args.top_k, args.category_names, args.is_gpu_enabled)
+    if args.category_names:
+        with open(args.category_names, 'r') as f:
+            cat_to_name = json.load(f)
+    else:
+        cat_to_name = None
+    probs, classes = make_prediction(args.path_to_image, args.checkpoint, args.top_k, cat_to_name, args.is_gpu_enabled)
+    print("\nFile: ", args.path_to_image)
     print("Probabilities: ", probs)
-    print("Classes: ", classes)
+    print("Classes: {}\n".format(classes))
