@@ -16,7 +16,7 @@ def generate_classifier(classifier_input_size, hidden_units):
     ]))
     return flower_classifier
 
-def update_from_training_data(model, dataloaders, device, criterion, optimizer):
+def update_from_training_data(model, dataloaders, device, criterion, optimizer, train_losses):
     running_loss = 0
     for images, labels in dataloaders['training']: # should be batch of 32 images with labels in each iteration
         images_cuda, labels_cuda = images.to(device), labels.to(device)
@@ -27,9 +27,10 @@ def update_from_training_data(model, dataloaders, device, criterion, optimizer):
         optimizer.step()
 
         running_loss += loss.item()
+    train_losses.append(running_loss / len(dataloaders['training']))
     return running_loss
 
-def evaluate_model_on_validation():
+def evaluate_model_on_validation(model, dataloaders, device, criterion, validation_losses):
     validation_loss = 0
     validation_accuracy = 0
     model.eval()
@@ -43,11 +44,10 @@ def evaluate_model_on_validation():
             top_p, top_class = forward_pass.topk(1, dim=1)
 
             equals = top_class == labels_test_cuda.view(*top_class.shape)
-            accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
-    train_losses.append(running_loss / len(dataloaders['training']))
+            validation_accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
     validation_losses.append(validation_loss / len(dataloaders['validation']))
     model.train()
-
+    return validation_loss, validation_accuracy
 
 def run_feed_forward_back_propagation(model, epochs, learning_rate, dataloaders, criterion):
     optimizer = optim.Adam(model.classifier.parameters(), lr=learning_rate)
@@ -56,10 +56,8 @@ def run_feed_forward_back_propagation(model, epochs, learning_rate, dataloaders,
     validation_losses = []
 
     for e in range(epochs):
-        running_loss = update_from_training_data(model, dataloaders, device, criterion, optimizer)
-        validation_loss, validation_accuracy = evaluate_model_on_validation()
-
-
+        running_loss = update_from_training_data(model, dataloaders, device, criterion, optimizer, train_losses)
+        validation_loss, validation_accuracy = evaluate_model_on_validation(model, dataloaders, device, criterion, validation_losses)
 
 
 
