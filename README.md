@@ -1,4 +1,4 @@
-# AI Programming with Python Project
+# Flower Image Classifier And Python Command Line Tool
 
 This project is split into two main parts:
 
