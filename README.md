@@ -1,6 +1,6 @@
 # Flower Image Classifier And Python Command Line Tool
 
-<div style="display: flex; justify-content: center; margin-top: 10px; margin-bottom: 10px;">
+<div style="display: flex; width: 100%; justify-content: center; margin-top: 10px; margin-bottom: 10px;">
     <img src="/assets/Classification_Example.png" alt="Sample classification results for an image" width="500">
 </div>
 
