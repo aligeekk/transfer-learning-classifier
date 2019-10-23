@@ -21,12 +21,12 @@ After training the network and testing on a validation set and testing set, I sa
 Using the Python application, a user may classify flower species by using the saved neural network or by setting various options and then training their own model.
 
 Available options include:
-    * the number of best matching categories to return (e.g. for 3, the categories with the top 3 probabilities are shown)
-    * whether to run with GPU enabled (this will significantly speed up the training process)
-    * the number of training epochs
-    * the number of hidden units in the classifier
-    * the learning rate (i.e. step size for backpropagation)
-    * the type of architecture to be used for the pre-trained convolutional layers
+* the number of best matching categories to return (e.g. for 3, the categories with the top 3 probabilities are shown)
+* whether to run with GPU enabled (this will significantly speed up the training process)
+* the number of training epochs
+* the number of hidden units in the classifier
+* the learning rate (i.e. step size for backpropagation)
+* the type of architecture to be used for the pre-trained convolutional layers
 
 ## Notes
 
