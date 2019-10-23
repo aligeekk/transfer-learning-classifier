@@ -1,5 +1,7 @@
 # Flower Image Classifier And Python Command Line Tool
 
+<img src="/assets/Classification_Example.png" alt="Sample classification results for an image" width="200" style="margin-top: 10px; margin-bottom: 10px;">
+
 This project is split into two main parts:
 
 - An image classifier for classifying various species of flowers based on images, using a neural network created in a Jupyter Notebook using PyTorch
@@ -30,6 +32,6 @@ Available options include:
 
 ## Notes
 
-To run the Jupyter Notebook, you must have `Python` installed. You will also need to be able to access the Jupyter notebook; I recommend installing the Anaconda distribution, or for a smaller download, Miniconda. Both come with `Python` during installation. To run the notebook, use the command `jupyter notebook` (depending on your version of `Python`, you may require some variation of this terminal command). This will open a browser window and the Jupyter Notebook dashboard, from which you can navigate to `Image Classifier Project.ipynb`.
+To run the Jupyter Notebook, you must have `Python` installed. You will also need to be able to access the Jupyter notebook; I recommend installing the Anaconda distribution, or for a smaller download, Miniconda. Both come with `Python` during installation. To run the notebook, use the command `jupyter-notebook` (depending on your version of `Python` and `Jupyter Notebook`, you may require some variation of this terminal command). This will open a browser window and the Jupyter Notebook dashboard, from which you can navigate to `Image Classifier Project.ipynb`.
 
 This project was cloned from the starter code provided by Udacity's AI Programming with Python Nanodegree program.
